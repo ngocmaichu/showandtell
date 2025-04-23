@@ -1,0 +1,90 @@
+:root {
+  --bg: #121212;
+  --fg: #e0e0e0;
+  --card-bg: #1e1e1e;
+  --accent: #bb86fc;
+  --muted: #373737;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.nav-link {
+  color: var(--fg);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.nav-link:hover {
+  background: var(--muted);
+}
+
+.nav-link.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.main {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem auto;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+}
+
+.setup {
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.punchline {
+  font-weight: bold;
+}
+
+.button {
+  background: var(--accent);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1rem;
+  color: var(--bg);
+  transition: background 0.2s;
+}
+
+.button:hover {
+  background: #9a5ad6;
+}
+
+.list li {
+  list-style-type: none;
+}
