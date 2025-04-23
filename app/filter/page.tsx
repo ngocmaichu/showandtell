@@ -1,83 +1,89 @@
 "use client";
-import { useState, useEffect, useTransition, ChangeEvent } from "react";
 
-interface Joke { id: number; setup: string; punchline: string; }
-function burn(ms: number) {
-  const stop = performance.now() + ms;
-  while (performance.now() < stop) {}
-}
+import { useState, useEffect, useTransition } from "react";
 
 export default function FilterPage() {
-  const [all, setAll] = useState<Joke[]>([]);
-  const [q, setQ] = useState("");
-  const [filtered, setFiltered] = useState<Joke[]>([]);
-  const [isPending, startTransition] = useTransition();
+  //the full “catalog” and its filtered subset
+  const [all, setAll] = useState<{ setup: string }[]>([]);
+  const [filtered, setFiltered] = useState<typeof all>([]);
+  const [q, setQ] = useState("");  
 
+  //for useTransition
+  const [isPending, startTransition] = useTransition();
+  //simulate some CPU work per item
+  const burn = (ms = 0.05) => {
+    const end = performance.now() + ms;
+    while (performance.now() < end) {}
+  };
+
+  //fetch 5 000 items
   useEffect(() => {
-    fetch("https://official-joke-api.appspot.com/random_ten")
-      .then((r) => r.json())
-      .then((data: Joke[]) => {
-        const big = Array.from({ length: 500 }).flatMap(() => data);
-        setAll(big);
-        setFiltered(big);
-      });
+    (async () => {
+      const jokes = await fetch("https://official-joke-api.appspot.com/random_ten").then(r => r.json());
+      const big = Array.from({ length: 500 }).flatMap(() => jokes);
+      setAll(big);
+      setFiltered(big);
+    })();
   }, []);
 
-  const handleConventional = (e: ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setQ(v);
-    const next = all.filter((j) => {
-      burn(0.05);
-      return j.setup.toLowerCase().includes(v.toLowerCase());
-    });
-    setFiltered(next);
-  };
-
-  const handleTransition = (e: ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setQ(v);
-    startTransition(() => {
+  //one handler for both modes
+  function handleChange(ev: React.ChangeEvent<HTMLInputElement>, useTrans = false) {
+    const nextQ = ev.target.value;
+    setQ(nextQ);
+    const doFilter = () => {
       setFiltered(
-        all.filter((j) => {
-          burn(0.05);
-          return j.setup.toLowerCase().includes(v.toLowerCase());
+        all.filter(j => {
+          burn();
+          return j.setup.toLowerCase().includes(nextQ.toLowerCase());
         })
       );
-    });
-  };
+    };
+    useTrans ? startTransition(doFilter) : doFilter();
+  }
 
+  //render list of 20 setups
+  const listItems = filtered.slice(0, 20).map((j, i) => (
+    <li key={i}>{j.setup}</li>
+  ));
   return (
     <main className="main">
       <h1>Filter Jokes</h1>
 
-      <section className="section">
+      <div className="section">
         <h2>Conventional</h2>
-        <input className="input" value={q} onChange={handleConventional} placeholder="Search…" />
+        <input
+          className="input"
+          placeholder="Search…"
+          value={q}
+          onChange={e => handleChange(e, false)}
+        />
         <p>
           {filtered.length} / {all.length}
         </p>
         <ul className="list">
-          {filtered.slice(0, 20).map((j, i) => (
-            <li key={`${j.id}-${i}`}>{j.setup}</li>
-          ))}
+          {listItems}
           {filtered.length > 20 && <li>…</li>}
         </ul>
-      </section>
+      </div>
 
-      <section className="section">
+      <div className="section">
         <h2>useTransition</h2>
-        <input className="input" value={q} onChange={handleTransition} placeholder="Search…" />
-        {isPending && <p className="spinner">🔄 Filtering…</p>}
+        <input
+          className="input"
+          placeholder="Search…"
+          value={q}
+          onChange={e => handleChange(e, true)}
+        />
+        {isPending && <p className="spinner">Loading…</p>}
         <p>
           {filtered.length} / {all.length}
         </p>
         <ul className="list">
-          {filtered.slice(0, 20).map((j, i) => (
-            <li key={`${j.id}-${i}`}>{j.setup}</li>
-          ))}
+          {listItems}
           {filtered.length > 20 && <li>…</li>}
         </ul>
-      </section>
+      </div>
     </main>
   );
 }
+
