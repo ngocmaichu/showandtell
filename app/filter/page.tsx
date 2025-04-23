@@ -1,50 +1,56 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-
 export default function FilterPage() {
-  //the full “catalog” and its filtered subset
   const [all, setAll] = useState<{ setup: string }[]>([]);
   const [filtered, setFiltered] = useState<typeof all>([]);
-  const [q, setQ] = useState("");  
-
-  //for useTransition
+  const [q, setQ] = useState("");
+  // useTransition 
   const [isPending, startTransition] = useTransition();
-  //simulate some CPU work per item
+  // simulate light CPU work per item
   const burn = (ms = 0.05) => {
     const end = performance.now() + ms;
     while (performance.now() < end) {}
   };
-
-  //fetch 5 000 items
+  // fetch 5,000 items 
   useEffect(() => {
     (async () => {
-      const jokes = await fetch("https://official-joke-api.appspot.com/random_ten").then(r => r.json());
+      const jokes = await fetch(
+        "https://official-joke-api.appspot.com/random_ten"
+      ).then((r) => r.json());
       const big = Array.from({ length: 500 }).flatMap(() => jokes);
       setAll(big);
       setFiltered(big);
     })();
   }, []);
 
-  //one handler for both modes
-  function handleChange(ev: React.ChangeEvent<HTMLInputElement>, useTrans = false) {
+  function handleChange(
+    ev: React.ChangeEvent<HTMLInputElement>,
+    useTrans: boolean
+  ) {
     const nextQ = ev.target.value;
     setQ(nextQ);
+
     const doFilter = () => {
       setFiltered(
-        all.filter(j => {
+        all.filter((j) => {
           burn();
           return j.setup.toLowerCase().includes(nextQ.toLowerCase());
         })
       );
     };
-    useTrans ? startTransition(doFilter) : doFilter();
+    if (useTrans) {
+      startTransition(doFilter);
+    } else {
+      doFilter();
+    }
   }
 
-  //render list of 20 setups
+  // render 20 setups
   const listItems = filtered.slice(0, 20).map((j, i) => (
     <li key={i}>{j.setup}</li>
   ));
+
   return (
     <main className="main">
       <h1>Filter Jokes</h1>
@@ -55,7 +61,7 @@ export default function FilterPage() {
           className="input"
           placeholder="Search…"
           value={q}
-          onChange={e => handleChange(e, false)}
+          onChange={(e) => handleChange(e, false)}
         />
         <p>
           {filtered.length} / {all.length}
@@ -72,7 +78,7 @@ export default function FilterPage() {
           className="input"
           placeholder="Search…"
           value={q}
-          onChange={e => handleChange(e, true)}
+          onChange={(e) => handleChange(e, true)}
         />
         {isPending && <p className="spinner">Loading…</p>}
         <p>
